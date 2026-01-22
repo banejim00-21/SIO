@@ -1,0 +1,827 @@
+// Schema Prisma - Sistema Integral de Obras (SIO)
+// Universidad Nacional Daniel Alcides Carrión
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ==========================================
+// MÓDULO 1: GESTIÓN DE PROYECTOS
+// ==========================================
+
+model Obra {
+  id_obra                 Int        @id @default(autoincrement())
+  nombre_obra             String     @db.VarChar(255)
+  ubicacion               String     @db.VarChar(255)
+  coordenadas             String?    @db.VarChar(100)
+  presupuesto_inicial     Decimal    @db.Decimal(15, 2)
+  fecha_inicio_prevista   DateTime
+  fecha_fin_prevista      DateTime?
+  total_partidas_inicial  Int?
+  archivo_adjunto_url     String?    @db.VarChar(500)
+  estado                  EstadoObra @default(PLANEADA)
+  id_responsable          Int
+  fecha_creacion          DateTime   @default(now())
+  fecha_actualizacion     DateTime   @updatedAt
+
+  // Relaciones
+  responsable        Usuario           @relation("ObraResponsable", fields: [id_responsable], references: [id_usuario])
+  fases              Fase[]
+  cronogramas        Cronograma[]
+  historial_estados  HistorialEstado[]
+  presupuestos       Presupuesto[]
+  documentos         Documento[]
+  expedientes        ExpedienteDigital[]
+  reportes           Reporte[]
+  roles_asignados    RolAsignado[]
+  evaluaciones       Evaluacion[]
+  logs_actividad     LogActividad[]
+
+  @@index([estado])
+  @@index([id_responsable])
+  @@map("obra")
+}
+
+model Fase {
+  id_fase      Int      @id @default(autoincrement())
+  id_obra      Int
+  nombre_fase  String   @db.VarChar(255)
+  fecha_inicio DateTime @db.Date
+  fecha_fin    DateTime @db.Date
+
+  // Relaciones
+  obra        Obra        @relation(fields: [id_obra], references: [id_obra], onDelete: Cascade)
+  actividades Actividad[]
+
+  @@index([id_obra])
+  @@map("fase")
+}
+
+model Actividad {
+  id_actividad     Int       @id @default(autoincrement())
+  id_fase          Int
+  nombre_actividad String    @db.VarChar(255)
+  descripcion      String?   @db.Text
+  fecha_inicio     DateTime  @db.Date
+  fecha_fin        DateTime  @db.Date
+  duracion         Int
+  id_dependencia   Int?
+  id_responsable   Int
+
+  // Relaciones
+  fase         Fase        @relation(fields: [id_fase], references: [id_fase], onDelete: Cascade)
+  dependencia  Actividad?  @relation("ActividadDependencia", fields: [id_dependencia], references: [id_actividad])
+  dependientes Actividad[] @relation("ActividadDependencia")
+  responsable  Usuario     @relation(fields: [id_responsable], references: [id_usuario])
+
+  @@index([id_fase])
+  @@index([id_responsable])
+  @@map("actividad")
+}
+
+model Cronograma {
+  id_cronograma  Int      @id @default(autoincrement())
+  id_obra        Int
+  fecha_creacion DateTime @db.Date
+  estado         String   @db.VarChar(50)
+
+  // Relaciones
+  obra  Obra   @relation(fields: [id_obra], references: [id_obra], onDelete: Cascade)
+  hitos Hito[]
+
+  @@index([id_obra])
+  @@map("cronograma")
+}
+
+model Hito {
+  id_hito       Int      @id @default(autoincrement())
+  id_cronograma Int
+  descripcion   String   @db.VarChar(255)
+  fecha_hito    DateTime @db.Date
+  tipo          String   @db.VarChar(100)
+
+  // Relaciones
+  cronograma Cronograma @relation(fields: [id_cronograma], references: [id_cronograma], onDelete: Cascade)
+
+  @@index([id_cronograma])
+  @@map("hito")
+}
+
+model HistorialEstado {
+  id_historial  Int        @id @default(autoincrement())
+  id_obra       Int
+  estado        EstadoObra
+  fecha_cambio  DateTime   @default(now())
+  id_usuario    Int
+  justificacion String     @db.Text
+
+  // Relaciones
+  obra    Obra    @relation(fields: [id_obra], references: [id_obra], onDelete: Cascade)
+  usuario Usuario @relation(fields: [id_usuario], references: [id_usuario])
+
+  @@index([id_obra])
+  @@index([id_usuario])
+  @@map("historial_estado")
+}
+
+// ==========================================
+// MÓDULO 2: GESTIÓN PRESUPUESTAL
+// ==========================================
+
+model Presupuesto {
+  id_presupuesto Int               @id @default(autoincrement())
+  id_obra        Int
+  version        Int               @default(1)
+  monto_total    Decimal           @db.Decimal(15, 2)
+  fecha_creacion DateTime          @default(now())
+  estado         EstadoPresupuesto @default(VIGENTE)
+  id_responsable Int
+
+  // Relaciones
+  obra           Obra           @relation(fields: [id_obra], references: [id_obra], onDelete: Cascade)
+  responsable    Usuario        @relation(fields: [id_responsable], references: [id_usuario])
+  partidas       Partida[]
+  modificaciones Modificacion[]
+  adendas        Adenda[]
+
+  @@unique([id_obra, version])
+  @@index([id_obra])
+  @@index([estado])
+  @@map("presupuesto")
+}
+
+model Partida {
+  id_partida      Int     @id @default(autoincrement())
+  id_presupuesto  Int
+  nombre_partida  String  @db.VarChar(255)
+  monto_asignado  Decimal @db.Decimal(15, 2)
+  monto_ejecutado Decimal @db.Decimal(15, 2) @default(0)
+
+  // Relaciones
+  presupuesto Presupuesto        @relation(fields: [id_presupuesto], references: [id_presupuesto], onDelete: Cascade)
+  gastos      Gasto[]
+  adendas     Adenda[]
+  actividades ActividadPartida[]
+
+  @@index([id_presupuesto])
+  @@map("partida")
+}
+
+model ActividadPartida {
+  id_actividad     Int      @id @default(autoincrement())
+  id_partida       Int
+  nombre_actividad String   @db.VarChar(255)
+  descripcion      String?  @db.Text
+  fecha_inicio     DateTime @db.Date
+  fecha_fin        DateTime @db.Date
+
+  // Relaciones
+  partida Partida @relation(fields: [id_partida], references: [id_partida], onDelete: Cascade)
+  gastos  Gasto[]
+
+  @@index([id_partida])
+  @@map("actividad_partida")
+}
+
+model Modificacion {
+  id_modificacion    Int              @id @default(autoincrement())
+  id_presupuesto     Int
+  tipo               TipoModificacion
+  monto_modificado   Decimal          @db.Decimal(15, 2)
+  justificacion      String           @db.Text
+  documento_respaldo String?          @db.VarChar(500)
+  fecha_modificacion DateTime         @default(now())
+  id_usuario         Int
+
+  // Relaciones
+  presupuesto Presupuesto @relation(fields: [id_presupuesto], references: [id_presupuesto], onDelete: Cascade)
+  usuario     Usuario     @relation(fields: [id_usuario], references: [id_usuario])
+
+  @@index([id_presupuesto])
+  @@map("modificacion")
+}
+
+model Adenda {
+  id_adenda          Int      @id @default(autoincrement())
+  id_presupuesto     Int
+  monto_adicional    Decimal  @db.Decimal(15, 2)
+  id_partida         Int?
+  documento_respaldo String?  @db.VarChar(500)
+  fecha_aprobacion   DateTime @db.Date
+  id_usuario         Int
+
+  // Relaciones
+  presupuesto Presupuesto @relation(fields: [id_presupuesto], references: [id_presupuesto], onDelete: Cascade)
+  partida     Partida?    @relation(fields: [id_partida], references: [id_partida])
+  usuario     Usuario     @relation(fields: [id_usuario], references: [id_usuario])
+
+  @@index([id_presupuesto])
+  @@map("adenda")
+}
+
+model Gasto {
+  id_gasto           Int       @id @default(autoincrement())
+  id_partida         Int
+  id_actividad       Int?
+  monto              Decimal   @db.Decimal(15, 2)
+  descripcion        String?   @db.VarChar(255)
+  fecha_gasto        DateTime  @db.Date
+  tipo_comprobante   String?   @db.VarChar(50)
+  numero_comprobante String?   @db.VarChar(100)
+  id_usuario         Int?
+  documento_respaldo String?   @db.VarChar(500)
+  created_at         DateTime? @default(now())
+
+  // Relaciones
+  partida   Partida           @relation(fields: [id_partida], references: [id_partida], onDelete: Cascade)
+  actividad ActividadPartida? @relation(fields: [id_actividad], references: [id_actividad], onDelete: SetNull)
+  usuario   Usuario?          @relation(fields: [id_usuario], references: [id_usuario])
+
+  @@index([id_partida])
+  @@index([id_actividad])
+  @@index([fecha_gasto])
+  @@map("gasto")
+}
+
+// ==========================================
+// MÓDULO 3: GESTIÓN DE RECURSOS HUMANOS
+// ==========================================
+
+model Personal {
+  id_personal         Int          @id @default(autoincrement())
+  dni                 String       @unique @db.VarChar(20)
+  nombre              String       @db.VarChar(255)
+  fecha_nacimiento    DateTime     @db.Date
+  correo              String       @db.VarChar(100)
+  telefono            String?      @db.VarChar(20)
+  cargo               String       @db.VarChar(100)
+  area                AreaPersonal
+  titulo              String?      @db.VarChar(100)
+  especialidad        String?      @db.VarChar(100)
+  experiencia         String?      @db.Text
+  documentos_respaldo String?      @db.VarChar(500)
+  fecha_registro      DateTime     @default(now())
+
+  // Relaciones
+  usuario             Usuario?
+  roles_asignados     RolAsignado[]
+  evaluaciones        Evaluacion[]  @relation("PersonalEvaluado")
+  evaluaciones_hechas Evaluacion[]  @relation("PersonalEvaluador")
+
+  @@index([dni])
+  @@index([area])
+  @@map("personal")
+}
+
+model RolAsignado {
+  id_rol_asignado Int        @id @default(autoincrement())
+  id_personal     Int
+  rol             RolPersonal
+  id_proyecto     Int?
+  fecha_inicio    DateTime   @db.Date
+  fecha_fin       DateTime?  @db.Date
+  estado          EstadoRol  @default(ACTIVO)
+
+  // Relaciones
+  personal Personal @relation(fields: [id_personal], references: [id_personal], onDelete: Cascade)
+  proyecto Obra?    @relation(fields: [id_proyecto], references: [id_obra])
+
+  @@index([id_personal])
+  @@index([id_proyecto])
+  @@index([estado])
+  @@map("rol_asignado")
+}
+
+model Evaluacion {
+  id_evaluacion       Int                 @id @default(autoincrement())
+  id_personal         Int
+  id_proyecto         Int
+  rol_evaluado        RolPersonal
+  puntualidad         Int                 @db.SmallInt
+  cumplimiento_tareas Int                 @db.SmallInt
+  calidad_trabajo     Int                 @db.SmallInt
+  puntaje_total       Decimal             @db.Decimal(5, 2)
+  categoria           CategoriaEvaluacion
+  observaciones       String?             @db.Text
+  fecha_evaluacion    DateTime            @default(now())
+  id_evaluador        Int
+
+  // Relaciones
+  personal  Personal @relation("PersonalEvaluado", fields: [id_personal], references: [id_personal], onDelete: Cascade)
+  proyecto  Obra     @relation(fields: [id_proyecto], references: [id_obra], onDelete: Cascade)
+  evaluador Personal @relation("PersonalEvaluador", fields: [id_evaluador], references: [id_personal])
+
+  @@index([id_personal])
+  @@index([id_proyecto])
+  @@map("evaluacion")
+}
+
+// ==========================================
+// MÓDULO 4: GESTIÓN DOCUMENTAL
+// ==========================================
+
+model CarpetaTipo {
+  id_carpeta_tipo Int         @id @default(autoincrement())
+  codigo          String      @unique @db.VarChar(10)
+  nombre_carpeta  String      @db.VarChar(255)
+  descripcion     String?     @db.Text
+  orden           Int
+
+  // Relaciones
+  documentos Documento[]
+
+  @@map("carpeta_tipo")
+}
+
+model Documento {
+  id_documento    Int             @id @default(autoincrement())
+  id_obra         Int
+  id_carpeta_tipo Int
+  tipo_documento  TipoDocumento
+  nombre_archivo  String          @db.VarChar(255)
+  descripcion     String?         @db.Text
+  ruta_archivo    String          @db.VarChar(500)
+  formato         String          @db.VarChar(10)
+  version         Int             @default(1)
+  estado          EstadoDocumento @default(VIGENTE)
+  fecha_carga     DateTime        @default(now())
+  id_usuario      Int
+  id_partida      Int?
+  id_actividad    Int?
+
+  // Relaciones
+  obra            Obra            @relation(fields: [id_obra], references: [id_obra], onDelete: Cascade)
+  carpeta_tipo    CarpetaTipo     @relation(fields: [id_carpeta_tipo], references: [id_carpeta_tipo])
+  usuario         Usuario         @relation(fields: [id_usuario], references: [id_usuario])
+  plano           Plano?
+  contrato        Contrato?
+  informe_tecnico InformeTecnico?
+
+  @@index([id_obra])
+  @@index([id_carpeta_tipo])
+  @@index([tipo_documento])
+  @@index([id_partida])
+  @@index([id_actividad])
+  @@map("documento")
+}
+
+model Plano {
+  id_plano     Int            @id @default(autoincrement())
+  id_documento Int            @unique
+  tipo_plano   String         @db.VarChar(100)
+  categoria    CategoriaPlano
+
+  // Relaciones
+  documento Documento @relation(fields: [id_documento], references: [id_documento], onDelete: Cascade)
+
+  @@map("plano")
+}
+
+model Contrato {
+  id_contrato       Int            @id @default(autoincrement())
+  id_documento      Int            @unique
+  numero_contrato   String         @db.VarChar(50)
+  fecha_firma       DateTime       @db.Date
+  vigencia          String         @db.VarChar(100)
+  estado            EstadoContrato
+  responsable_legal String         @db.VarChar(255)
+
+  // Relaciones
+  documento Documento        @relation(fields: [id_documento], references: [id_documento], onDelete: Cascade)
+  adendas   AdendaContrato[]
+
+  @@index([numero_contrato])
+  @@map("contrato")
+}
+
+model AdendaContrato {
+  id_adenda_contrato Int      @id @default(autoincrement())
+  id_contrato        Int
+  descripcion        String   @db.VarChar(255)
+  monto              Decimal? @db.Decimal(15, 2)
+  fecha_aprobacion   DateTime @db.Date
+  documento_respaldo String?  @db.VarChar(500)
+
+  // Relaciones
+  contrato Contrato @relation(fields: [id_contrato], references: [id_contrato], onDelete: Cascade)
+
+  @@index([id_contrato])
+  @@map("adenda_contrato")
+}
+
+model InformeTecnico {
+  id_informe      Int         @id @default(autoincrement())
+  id_documento    Int         @unique
+  tipo_informe    TipoInforme
+  autor           String      @db.VarChar(255)
+  rol_responsable String      @db.VarChar(100)
+  fecha_informe   DateTime    @db.Date
+
+  // Relaciones
+  documento Documento @relation(fields: [id_documento], references: [id_documento], onDelete: Cascade)
+
+  @@map("informe_tecnico")
+}
+
+model ExpedienteDigital {
+  id_expediente       Int      @id @default(autoincrement())
+  id_obra             Int
+  version             Int
+  fecha_consolidacion DateTime @default(now())
+  responsable         String   @db.VarChar(255)
+  ruta_archivo        String   @db.VarChar(500)
+
+  // Relaciones
+  obra Obra @relation(fields: [id_obra], references: [id_obra], onDelete: Cascade)
+
+  @@unique([id_obra, version])
+  @@index([id_obra])
+  @@map("expediente_digital")
+}
+
+// ==========================================
+// MÓDULO 5: REPORTES
+// ==========================================
+
+model Reporte {
+  id_reporte       Int         @id @default(autoincrement())
+  id_obra          Int
+  tipo_reporte     TipoReporte
+  parametros       String?     @db.Text
+  fecha_generacion DateTime    @default(now())
+  ruta_archivo     String?     @db.VarChar(500)
+  id_usuario       Int
+
+  // Relaciones
+  obra                Obra                @relation(fields: [id_obra], references: [id_obra], onDelete: Cascade)
+  usuario             Usuario             @relation(fields: [id_usuario], references: [id_usuario])
+  reporte_tecnico     ReporteTecnico?
+  reporte_financiero  ReporteFinanciero?
+  reporte_comparativo ReporteComparativo?
+  reporte_consolidado ReporteConsolidado?
+
+  @@index([id_obra])
+  @@index([tipo_reporte])
+  @@index([fecha_generacion])
+  @@map("reporte")
+}
+
+model ReporteTecnico {
+  id_reporte_tecnico Int     @id @default(autoincrement())
+  id_reporte         Int     @unique
+  avance_fisico      Decimal @db.Decimal(5, 2)
+  hitos_cumplidos    String? @db.Text
+  observaciones      String? @db.Text
+
+  // Relaciones
+  reporte Reporte @relation(fields: [id_reporte], references: [id_reporte], onDelete: Cascade)
+
+  @@map("reporte_tecnico")
+}
+
+model ReporteFinanciero {
+  id_reporte_financiero   Int     @id @default(autoincrement())
+  id_reporte              Int     @unique
+  presupuesto_planificado Decimal @db.Decimal(15, 2)
+  ejecucion_real          Decimal @db.Decimal(15, 2)
+  saldo_disponible        Decimal @db.Decimal(15, 2)
+  desviacion_financiera   Decimal @db.Decimal(15, 2)
+
+  // Relaciones
+  reporte Reporte @relation(fields: [id_reporte], references: [id_reporte], onDelete: Cascade)
+
+  @@map("reporte_financiero")
+}
+
+model ReporteComparativo {
+  id_reporte_comparativo  Int     @id @default(autoincrement())
+  id_reporte              Int     @unique
+  avance_planificado      Decimal @db.Decimal(5, 2)
+  avance_real             Decimal @db.Decimal(5, 2)
+  presupuesto_planificado Decimal @db.Decimal(15, 2)
+  presupuesto_ejecutado   Decimal @db.Decimal(15, 2)
+  desviacion_tiempo       Decimal @db.Decimal(10, 2)
+  desviacion_costo        Decimal @db.Decimal(15, 2)
+
+  // Relaciones
+  reporte Reporte @relation(fields: [id_reporte], references: [id_reporte], onDelete: Cascade)
+
+  @@map("reporte_comparativo")
+}
+
+model ReporteConsolidado {
+  id_reporte_consolidado   Int     @id @default(autoincrement())
+  id_reporte               Int     @unique
+  obras_incluidas          String  @db.Text
+  estado_tecnico_global    String? @db.Text
+  estado_financiero_global String? @db.Text
+  indicadores_clave        String? @db.Text
+
+  // Relaciones
+  reporte Reporte @relation(fields: [id_reporte], references: [id_reporte], onDelete: Cascade)
+
+  @@map("reporte_consolidado")
+}
+
+// ==========================================
+// MÓDULO 6: SEGURIDAD
+// ==========================================
+
+model Rol {
+  id_rol      Int     @id @default(autoincrement())
+  nombre      String  @unique @db.VarChar(100)
+  descripcion String? @db.Text
+
+  // Relaciones
+  usuarios Usuario[]
+  permisos RolPermiso[]
+
+  @@map("rol")
+}
+
+model Usuario {
+  id_usuario     Int       @id @default(autoincrement())
+  id_personal    Int       @unique
+  usuario        String    @unique @db.VarChar(100)
+  clave          String    @db.VarChar(255)
+  nombre         String    @db.VarChar(255)
+  correo         String    @unique @db.VarChar(100)
+  id_rol         Int
+  fecha_creacion DateTime  @default(now())
+  ultimo_acceso  DateTime?
+
+  // Relaciones
+  personal          Personal          @relation(fields: [id_personal], references: [id_personal], onDelete: Cascade)
+  rol               Rol               @relation(fields: [id_rol], references: [id_rol])
+  obras_responsable Obra[]            @relation("ObraResponsable")
+  actividades       Actividad[]
+  historial_estados HistorialEstado[]
+  presupuestos      Presupuesto[]
+  modificaciones    Modificacion[]
+  adendas           Adenda[]
+  gastos            Gasto[]
+  documentos        Documento[]
+  reportes          Reporte[]
+  logs_acceso       LogAcceso[]
+  logs_actividad    LogActividad[]
+
+  @@index([id_rol])
+  @@map("usuario")
+}
+
+model Permiso {
+  id_permiso  Int           @id @default(autoincrement())
+  nombre      String        @db.VarChar(100)
+  modulo      ModuloSistema
+  descripcion String?       @db.Text
+
+  // Relaciones
+  roles RolPermiso[]
+
+  @@unique([nombre, modulo])
+  @@map("permiso")
+}
+
+model RolPermiso {
+  id_rol     Int
+  id_permiso Int
+
+  // Relaciones
+  rol     Rol     @relation(fields: [id_rol], references: [id_rol], onDelete: Cascade)
+  permiso Permiso @relation(fields: [id_permiso], references: [id_permiso], onDelete: Cascade)
+
+  @@id([id_rol, id_permiso])
+  @@map("rol_permiso")
+}
+
+model LogAcceso {
+  id_log      Int             @id @default(autoincrement())
+  id_usuario  Int
+  fecha_hora  DateTime        @default(now())
+  ip          String          @db.VarChar(45)
+  dispositivo String?         @db.VarChar(255)
+  accion      AccionAcceso
+  resultado   ResultadoAcceso
+
+  // Relaciones
+  usuario Usuario @relation(fields: [id_usuario], references: [id_usuario], onDelete: Cascade)
+
+  @@index([id_usuario])
+  @@index([fecha_hora])
+  @@map("log_acceso")
+}
+
+model LogActividad {
+  id_actividad_log Int           @id @default(autoincrement())
+  id_usuario       Int
+  modulo           ModuloSistema
+  accion           String        @db.VarChar(100)
+  fecha_hora       DateTime      @default(now())
+  id_obra          Int?
+  fase_asociada    String?       @db.VarChar(255)
+  resultado        String        @db.VarChar(50)
+
+  // Relaciones
+  usuario Usuario @relation(fields: [id_usuario], references: [id_usuario], onDelete: Cascade)
+  obra    Obra?   @relation(fields: [id_obra], references: [id_obra])
+
+  @@index([id_usuario])
+  @@index([modulo])
+  @@index([fecha_hora])
+  @@map("log_actividad")
+}
+
+model Alerta {
+  id_alerta    Int          @id @default(autoincrement())
+  tipo         String       @db.VarChar(100)
+  descripcion  String       @db.Text
+  fecha_hora   DateTime     @default(now())
+  nivel        NivelAlerta
+  destinatario String       @db.VarChar(100)
+  estado       EstadoAlerta @default(ACTIVA)
+
+  @@index([nivel])
+  @@index([estado])
+  @@index([fecha_hora])
+  @@map("alerta")
+}
+
+model Auditoria {
+  id_auditoria     Int      @id @default(autoincrement())
+  periodo          String   @db.VarChar(50)
+  fecha_generacion DateTime @default(now())
+  resumen          String?  @db.Text
+  ruta_archivo     String?  @db.VarChar(500)
+
+  @@map("auditoria")
+}
+model ConfiguracionSistema {
+  id                   Int      @id @default(autoincrement())
+  clave                String   @unique @db.VarChar(100)
+  valor                String   @db.Text
+  descripcion          String?  @db.Text
+  fecha_actualizacion  DateTime @default(now()) @updatedAt
+
+  @@map("configuracion_sistema")
+}
+// ==========================================
+// ENUMS
+// ==========================================
+
+enum EstadoObra {
+  PLANEADA
+  EN_EJECUCION
+  CONCLUIDA
+  LIQUIDADA
+
+  @@map("estado_obra")
+}
+
+enum EstadoPresupuesto {
+  VIGENTE
+  MODIFICADO
+  CERRADO
+
+  @@map("estado_presupuesto")
+}
+
+enum TipoModificacion {
+  INCLUSION
+  REAJUSTE
+  ACTUALIZACION
+
+  @@map("tipo_modificacion")
+}
+
+enum AreaPersonal {
+  INFRAESTRUCTURA
+  MANTENIMIENTO
+  LIQUIDACION
+  ESTUDIO
+  ADMINISTRACION
+
+  @@map("area_personal")
+}
+
+enum RolPersonal {
+  ADMINISTRADOR
+  INFRAESTRUCTURA
+  MANTENIMIENTO
+  LIQUIDACION
+  ESTUDIO
+
+  @@map("rol_personal")
+}
+
+enum EstadoRol {
+  ACTIVO
+  INACTIVO
+
+  @@map("estado_rol")
+}
+
+enum CategoriaEvaluacion {
+  EXCELENTE
+  BUENO
+  REGULAR
+  DEFICIENTE
+
+  @@map("categoria_evaluacion")
+}
+
+enum TipoDocumento {
+  PLANO
+  CONTRATO
+  INFORME
+  OTRO
+
+  @@map("tipo_documento")
+}
+
+enum EstadoDocumento {
+  VIGENTE
+  ACTUALIZADO
+  ANULADO
+
+  @@map("estado_documento")
+}
+
+enum CategoriaPlano {
+  INICIAL
+  ACTUALIZADO
+
+  @@map("categoria_plano")
+}
+
+enum EstadoContrato {
+  ACTIVO
+  VENCIDO
+
+  @@map("estado_contrato")
+}
+
+enum TipoInforme {
+  MENSUAL
+  PARCIAL
+  FINAL
+
+  @@map("tipo_informe")
+}
+
+enum TipoReporte {
+  TECNICO
+  FINANCIERO
+  COMPARATIVO
+  CONSOLIDADO
+
+  @@map("tipo_reporte")
+}
+
+enum ModuloSistema {
+  PROYECTOS
+  PRESUPUESTO
+  RRHH
+  DOCUMENTAL
+  REPORTES
+  SEGURIDAD
+
+  @@map("modulo_sistema")
+}
+
+enum AccionAcceso {
+  LOGIN
+  LOGOUT
+  INTENTO_FALLIDO
+  ACCESO_DENEGADO
+
+  @@map("accion_acceso")
+}
+
+enum ResultadoAcceso {
+  EXITO
+  FALLO
+
+  @@map("resultado_acceso")
+}
+
+enum NivelAlerta {
+  BAJA
+  MEDIA
+  ALTA
+  CRITICA
+
+  @@map("nivel_alerta")
+}
+
+enum EstadoAlerta {
+  ACTIVA
+  REVISADA
+  CERRADA
+
+  @@map("estado_alerta")
+}
