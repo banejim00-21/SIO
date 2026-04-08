@@ -142,7 +142,7 @@ export default function LoginPage() {
           </CardContent>
         </Card>
         <p className="text-center text-xs text-gray-500 mt-6">
-          © 2024 UNDAC - Todos los derechos reservados
+          © 2026 UNDAC - Todos los derechos reservados
         </p>
       </div>
     </div>

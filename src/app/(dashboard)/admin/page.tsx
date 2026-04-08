@@ -23,7 +23,7 @@ import {
 
 // ============ TIPOS ============
 interface CurvaSData {
-  mes: string
+  dia: string
   parcial: number
   acumulado: number
   parcialPorcentaje: number
@@ -202,9 +202,9 @@ function MultiSelect({ label, icon: Icon, options, selected, onChange, placehold
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <Button variant="outline" className="h-8 bg-slate-700/50 border-slate-600 text-white text-xs min-w-[120px] px-2 justify-between">
+        <Button variant="outline" className="h-8 bg-white border-gray-300 text-gray-700 text-xs min-w-[120px] px-2 justify-between">
           <div className="flex items-center gap-1.5">
-            {Icon && <Icon className="h-3 w-3 text-slate-400" />}
+            {Icon && <Icon className="h-3 w-3 text-gray-500" />}
             <span className="truncate">
               {selected.length === 0 ? (placeholder || label) : 
                selected.length === 1 ? options.find(o => o.value === selected[0])?.label?.substring(0, 12) + '...' :
@@ -214,34 +214,34 @@ function MultiSelect({ label, icon: Icon, options, selected, onChange, placehold
           <ChevronDown className="h-3 w-3 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-56 p-0 bg-slate-800 border-slate-700" align="start">
-        <div className="p-2 border-b border-slate-700 flex items-center justify-between">
-          <span className="text-xs font-medium text-slate-300">{label}</span>
+      <PopoverContent className="w-56 p-0 bg-white border-gray-200 shadow-lg" align="start">
+        <div className="p-2 border-b border-gray-200 flex items-center justify-between">
+          <span className="text-xs font-medium text-gray-700">{label}</span>
           <div className="flex gap-1">
-            <Button variant="ghost" size="sm" onClick={selectAll} className="h-5 text-[9px] text-emerald-400 hover:text-emerald-300 px-1.5">Todos</Button>
-            <Button variant="ghost" size="sm" onClick={clearAll} className="h-5 text-[9px] text-slate-400 hover:text-white px-1.5">Limpiar</Button>
+            <Button variant="ghost" size="sm" onClick={selectAll} className="h-5 text-[9px] text-emerald-600 hover:text-emerald-600 px-1.5">Todos</Button>
+            <Button variant="ghost" size="sm" onClick={clearAll} className="h-5 text-[9px] text-gray-500 hover:text-gray-800 px-1.5">Limpiar</Button>
           </div>
         </div>
-        <ScrollArea className="h-[180px]">
+        <ScrollArea className="h-[180px]">     
           <div className="p-1.5 space-y-0.5">
             {options.map(opt => (
               <div 
                 key={opt.value} 
-                className={`flex items-center gap-2 p-1.5 rounded cursor-pointer transition-colors ${selected.includes(opt.value) ? 'bg-emerald-600/20' : 'hover:bg-slate-700/50'}`}
+                className={`flex items-center gap-2 p-1.5 rounded cursor-pointer transition-colors ${selected.includes(opt.value) ? 'bg-emerald-50' : 'hover:bg-gray-50'}`}
                 onClick={() => toggle(opt.value)}
               >
-                <div className={`w-4 h-4 rounded border flex items-center justify-center transition-colors ${selected.includes(opt.value) ? 'bg-emerald-500 border-emerald-500' : 'border-slate-500'}`}>
+                <div className={`w-4 h-4 rounded border flex items-center justify-center transition-colors ${selected.includes(opt.value) ? 'bg-emerald-500 border-emerald-500' : 'border-gray-300'}`}>
                   {selected.includes(opt.value) && <Check className="h-2.5 w-2.5 text-white" />}
                 </div>
                 {opt.color && <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: opt.color }} />}
-                <span className="text-xs text-slate-200 truncate">{opt.label}</span>
+                <span className="text-xs text-gray-800 truncate">{opt.label}</span>
               </div>
             ))}
           </div>
         </ScrollArea>
         {selected.length > 0 && (
-          <div className="p-2 border-t border-slate-700">
-            <Badge className="bg-emerald-600/20 text-emerald-300 text-[9px]">{selected.length} de {options.length}</Badge>
+          <div className="p-2 border-t border-gray-200">
+            <Badge className="bg-emerald-50 text-emerald-700 text-[9px]">{selected.length} de {options.length}</Badge>
           </div>
         )}
       </PopoverContent>
@@ -277,10 +277,10 @@ interface CustomTooltipProps {
 const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
   if (!active || !payload?.length) return null
   return (
-    <div className="bg-slate-800 border border-slate-700 rounded-lg p-2 shadow-lg">
-      <p className="text-white font-medium text-xs mb-1">{label}</p>
+    <div className="bg-white border border-gray-300 rounded-lg p-2 shadow-lg">
+      <p className="text-gray-900 font-medium text-xs mb-1">{label}</p>
       {payload.map((entry: CustomTooltipPayload, index: number) => (
-        <p key={index} className="text-xs" style={{ color: entry.color || '#94a3b8' }}>
+        <p key={index} className="text-xs text-gray-700" style={{ color: entry.color }}>
           {entry.name}: {typeof entry.value === 'number' ? formatCurrency(entry.value) : entry.value}
         </p>
       ))}
@@ -288,6 +288,7 @@ const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
   )
 }
 // ============ COMPONENTE PRINCIPAL ============
+
 export default function AdminDashboardPage() {
   const [stats, setStats] = useState<Stats | null>(null)
   const [reportes, setReportes] = useState<Reporte[]>([])
@@ -439,7 +440,8 @@ export default function AdminDashboardPage() {
   const r = stats?.resumen
   const g = stats?.graficos
   const obraSeleccionadaData = obraActiva ? stats?.obras.find(o => o.id_obra.toString() === obraActiva) : null
-  const curvaData = obraSeleccionadaData?.curvaS || g?.curvaSGlobal || []
+  // const curvaData = obraSeleccionadaData?.curvaS || g?.curvaSGlobal || []
+  const curvaData = generateDailyTestData(); // Usa datos de prueba
   const partidasData = obraSeleccionadaData?.partidasDetalle || []
   const estadisticasEstado = g?.estadisticasPorEstado || []
 
@@ -730,7 +732,7 @@ export default function AdminDashboardPage() {
                 pdf.setTextColor(100, 116, 139)
                 curvaData.forEach((d, i) => {
                   if (i % 2 === 0 || curvaData.length <= 6) {
-                    pdf.text(d.mes.substring(0, 3), startX + (i * stepX) - 5, startY + 5)
+                    pdf.text(d.dia.substring(0, 3), startX + (i * stepX) - 5, startY + 5)
                   }
                 })
               }
@@ -788,7 +790,7 @@ export default function AdminDashboardPage() {
 
           case 'tablaAvance': {
             if (curvaData.length > 0) {
-              const headers = ['Mes', 'Parcial', 'Acumulado', '% Acum.', 'Programado', '% Prog.']
+              const headers = ['Dia', 'Parcial', 'Acumulado', '% Acum.', 'Programado', '% Prog.']
               const colWidths = [25, 30, 30, 20, 30, 20]
               
               pdf.setFillColor(30, 41, 59)
@@ -820,7 +822,7 @@ export default function AdminDashboardPage() {
                 
                 let x = margin
                 const values = [
-                  row.mes,
+                  row.dia,
                   formatCompact(row.parcial),
                   formatCompact(row.acumulado),
                   formatPercent(row.acumuladoPorcentaje),
@@ -828,7 +830,7 @@ export default function AdminDashboardPage() {
                   formatPercent(row.programadoPorcentaje)
                 ]
                 values.forEach((v, i) => {
-                  pdf.text(v, x + 2, yPos + 4)
+                  pdf.text(String(v), x + 2, yPos + 4)
                   x += colWidths[i]
                 })
                 yPos += 6
@@ -880,7 +882,7 @@ export default function AdminDashboardPage() {
                 const nombre = row.nombre.length > 35 ? row.nombre.substring(0, 35) + '...' : row.nombre
                 const values = [row.codigo, nombre, formatCompact(row.presupuesto), formatCompact(row.ejecutado), formatPercent(row.avance)]
                 values.forEach((v, i) => {
-                  pdf.text(v, x + 2, yPos + 4)
+                  pdf.text(String(v), x + 2, yPos + 4)
                   x += colWidths[i]
                 })
                 yPos += 6
@@ -940,7 +942,7 @@ export default function AdminDashboardPage() {
                   ESTADO_LABELS[obra.estado] || obra.estado
                 ]
                 values.forEach((v, i) => {
-                  pdf.text(v, x + 1, yPos + 4)
+                  pdf.text(String(v), x + 1, yPos + 4)
                   x += colWidths[i]
                 })
                 yPos += 6
@@ -1019,10 +1021,10 @@ export default function AdminDashboardPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-900 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <Loader2 className="h-12 w-12 animate-spin text-emerald-500 mx-auto mb-4" />
-          <p className="text-slate-400">Cargando dashboard...</p>
+          <p className="text-gray-600">Cargando dashboard...</p>
         </div>
       </div>
     )
@@ -1031,9 +1033,9 @@ export default function AdminDashboardPage() {
   const interp = getInterpretacion()
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
+    <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <div className="sticky top-0 z-50 bg-slate-900/95 backdrop-blur border-b border-slate-700/50">
+      <div className="sticky top-0 z-50 bg-white backdrop-blur border-b border-gray-200 shadow-sm">
         <div className="max-w-[1920px] mx-auto px-3 py-2">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -1041,18 +1043,18 @@ export default function AdminDashboardPage() {
                 <BarChart3 className="h-5 w-5 text-white" />
               </div>
               <div>
-                <h1 className="text-base font-bold text-white">REPORTE DE ESTADO DE INTERVENCIONES</h1>
-                <p className="text-[10px] text-slate-400">Sistema Integral de Obras - UNDAC</p>
+                <h1 className="text-base font-bold text-gray-900">REPORTE DE ESTADO DE INTERVENCIONES</h1>
+                <p className="text-[10px] text-gray-500">Sistema Integral de Obras - UNDAC</p>
               </div>
             </div>
             <div className="flex items-center gap-1.5">
-              <Button variant="outline" size="sm" onClick={handleRefresh} className="h-7 text-xs bg-slate-800 border-slate-600 text-slate-300 hover:bg-slate-700">
+              <Button variant="outline" size="sm" onClick={handleRefresh} className="h-7 text-xs bg-white border-gray-300 text-gray-700 hover:bg-gray-50">
                 <RefreshCw className="h-3 w-3 mr-1" /> Actualizar
               </Button>
-              <Button variant="outline" size="sm" onClick={() => setShowReportesModal(true)} className="h-7 text-xs bg-slate-800 border-slate-600 text-slate-300 hover:bg-slate-700">
+              <Button variant="outline" size="sm" onClick={() => setShowReportesModal(true)} className="h-7 text-xs bg-white border-gray-300 text-gray-700 hover:bg-gray-50">
                 <FileText className="h-3 w-3 mr-1" /> Reportes ({reportes.length})
               </Button>
-              <Button size="sm" onClick={() => { setShowPreviewModal(true); setPdfPreviewUrl(null) }} className="h-7 text-xs bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700">
+              <Button size="sm" onClick={() => { setShowPreviewModal(true); setPdfPreviewUrl(null) }} className="h-7 text-xs bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white">
                 <Printer className="h-3 w-3 mr-1" /> Generar PDF
               </Button>
             </div>
@@ -1062,11 +1064,11 @@ export default function AdminDashboardPage() {
 
       <div className="max-w-[1920px] mx-auto p-3 space-y-3">
         {/* Filtros */}
-        <Card className="bg-slate-800/40 border-slate-700/50">
+        <Card className="bg-white border-gray-200 shadow-sm">
           <CardContent className="p-2">
             <div className="flex flex-wrap items-center gap-1.5">
-              <Filter className="h-3.5 w-3.5 text-slate-400" />
-              <span className="text-xs text-slate-400 mr-1">Filtros:</span>
+              <Filter className="h-3.5 w-3.5 text-gray-500" />
+              <span className="text-xs text-gray-600 mr-1">Filtros:</span>
               <MultiSelect label="Años" icon={Calendar} placeholder="Todos los años" options={stats?.filtros.anios.map(a => ({ value: a.toString(), label: a.toString() })) || []} selected={filtroAnios} onChange={setFiltroAnios} />
               <MultiSelect label="Estados" placeholder="Todos" options={stats?.filtros.estados.map(e => ({ value: e, label: ESTADO_LABELS[e] || e, color: COLORS_ESTADO[e] })) || []} selected={filtroEstados} onChange={setFiltroEstados} />
               <MultiSelect label="Ubicaciones" icon={MapPin} placeholder="Todas" options={stats?.filtros.ubicaciones.map(u => ({ value: u, label: u })) || []} selected={filtroUbicaciones} onChange={setFiltroUbicaciones} />
@@ -1074,20 +1076,20 @@ export default function AdminDashboardPage() {
               
               <Popover>
                 <PopoverTrigger asChild>
-                  <Button variant="outline" className="h-8 bg-emerald-700/30 border-emerald-600/50 text-emerald-300 text-xs px-2 hover:bg-emerald-700/50">
+                  <Button variant="outline" className="h-8 bg-emerald-50 border-emerald-200 text-emerald-700 text-xs px-2 hover:bg-emerald-100">
                     <Eye className="h-3 w-3 mr-1" />{obraActiva ? 'Obra Sel.' : 'Ver Detalle'}
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-72 p-2 bg-slate-800 border-slate-700">
-                  <div className="text-xs text-slate-400 mb-2 font-medium">Seleccionar obra:</div>
+                <PopoverContent className="w-72 p-2 bg-white border-gray-200 shadow-lg">
+                  <div className="text-xs text-gray-600 mb-2 font-medium">Seleccionar obra:</div>
                   <ScrollArea className="h-[220px]">
                     <div className="space-y-0.5">
-                      <div className={`p-2 rounded cursor-pointer text-xs transition-colors ${!obraActiva ? 'bg-emerald-600/20 text-emerald-300' : 'hover:bg-slate-700/50 text-slate-200'}`} onClick={() => setObraActiva('')}>📊 Vista General</div>
+                      <div className={`p-2 rounded cursor-pointer text-xs transition-colors ${!obraActiva ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'hover:bg-gray-50 text-gray-800'}`} onClick={() => setObraActiva('')}>📊 Vista General</div>
                       {stats?.obras.map(o => (
-                        <div key={o.id_obra} className={`p-2 rounded cursor-pointer transition-colors ${obraActiva === o.id_obra.toString() ? 'bg-emerald-600/20' : 'hover:bg-slate-700/50'}`} onClick={() => setObraActiva(o.id_obra.toString())}>
-                          <span className="text-xs text-slate-200 block truncate">{o.nombre_obra}</span>
+                        <div key={o.id_obra} className={`p-2 rounded cursor-pointer transition-colors ${obraActiva === o.id_obra.toString() ? 'bg-emerald-50 border border-emerald-200' : 'hover:bg-gray-50 border border-transparent hover:border-gray-200'}`} onClick={() => setObraActiva(o.id_obra.toString())}>
+                          <span className="text-xs text-gray-800 block truncate">{o.nombre_obra}</span>
                           <div className="flex items-center gap-2 mt-1">
-                            <span className="text-[10px] text-slate-500">{o.ubicacion}</span>
+                            <span className="text-[10px] text-gray-500">{o.ubicacion}</span>
                             <Badge className="text-[8px] px-1" style={{ backgroundColor: COLORS_ESTADO[o.estado] }}>{o.avanceFisico.toFixed(1)}%</Badge>
                           </div>
                         </div>
@@ -1097,9 +1099,9 @@ export default function AdminDashboardPage() {
                 </PopoverContent>
               </Popover>
               
-              {hasActiveFilters && <Button variant="ghost" size="sm" onClick={clearAllFilters} className="h-7 text-xs text-slate-400 hover:text-white"><X className="h-3 w-3 mr-1" />Limpiar</Button>}
+              {hasActiveFilters && <Button variant="ghost" size="sm" onClick={clearAllFilters} className="h-7 text-xs text-gray-500 hover:text-gray-800"><X className="h-3 w-3 mr-1" />Limpiar</Button>}
             </div>
-            {obraSeleccionadaData && <div className="mt-2 pt-2 border-t border-slate-700/50"><Badge className="bg-emerald-600/20 text-emerald-300 text-[10px]">📋 {obraSeleccionadaData.nombre_obra.substring(0, 40)}...</Badge></div>}
+            {obraSeleccionadaData && <div className="mt-2 pt-2 border-t border-gray-200"><Badge className="bg-emerald-50 text-emerald-700 text-[10px] border border-emerald-200">📋 {obraSeleccionadaData.nombre_obra.substring(0, 40)}...</Badge></div>}
           </CardContent>
         </Card>
 
@@ -1132,29 +1134,29 @@ export default function AdminDashboardPage() {
 
         {/* Semáforo y Gráficos */}
         <div className="grid lg:grid-cols-4 gap-2">
-          <Card className="bg-slate-800/40 border-slate-700/50">
-            <CardHeader className="p-2 pb-1"><CardTitle className="text-white text-xs font-medium">🚦 SEMÁFORO GENERAL</CardTitle></CardHeader>
+          <Card className="bg-white border-gray-200 shadow-sm">
+            <CardHeader className="p-2 pb-1"><CardTitle className="text-gray-900 text-xs font-medium">🚦 SEMÁFORO GENERAL</CardTitle></CardHeader>
             <CardContent className="p-2">
               <div className="flex items-center justify-around py-2">
                 {[{ color: 'bg-green-500', val: g?.semaforoGeneral?.verde || 0, label: 'En plazo' }, { color: 'bg-yellow-500', val: g?.semaforoGeneral?.amarillo || 0, label: 'En riesgo' }, { color: 'bg-red-500', val: g?.semaforoGeneral?.rojo || 0, label: 'Crítico' }].map((s, i) => (
                   <div key={i} className="text-center">
                     <div className={`w-10 h-10 rounded-full ${s.color} flex items-center justify-center mx-auto mb-1 shadow-lg`}><span className="text-white font-bold text-sm">{s.val}</span></div>
-                    <span className="text-[10px] text-slate-400">{s.label}</span>
+                    <span className="text-[10px] text-gray-600">{s.label}</span>
                   </div>
                 ))}
               </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-slate-800/40 border-slate-700/50">
-            <CardHeader className="p-2 pb-1"><CardTitle className="text-white text-xs font-medium">📊 ESTADO OBRAS</CardTitle></CardHeader>
+          <Card className="bg-white border-gray-200 shadow-sm">
+            <CardHeader className="p-2 pb-1"><CardTitle className="text-gray-900 text-xs font-medium">📊 ESTADO OBRAS</CardTitle></CardHeader>
             <CardContent className="p-2">
               <div className="h-[120px]">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={estadisticasEstado} layout="vertical">
-                    <CartesianGrid strokeDasharray="3 3" stroke="#334155" horizontal={false} />
-                    <XAxis type="number" stroke="#64748b" tick={{ fontSize: 9 }} />
-                    <YAxis dataKey="label" type="category" stroke="#64748b" tick={{ fontSize: 9 }} width={70} />
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" horizontal={false} />
+                    <XAxis type="number" stroke="#6b7280" tick={{ fontSize: 9 }} />
+                    <YAxis dataKey="label" type="category" stroke="#6b7280" tick={{ fontSize: 9 }} width={70} />
                     <Tooltip content={<CustomTooltip />} />
                     <Bar dataKey="cantidad" radius={[0, 4, 4, 0]}>{estadisticasEstado.map((entry, index) => <Cell key={`cell-${index}`} fill={entry.color} />)}</Bar>
                   </BarChart>
@@ -1162,46 +1164,48 @@ export default function AdminDashboardPage() {
               </div>
             </CardContent>
           </Card>
-<Card className="bg-slate-800/40 border-slate-700/50">
-  <CardHeader className="p-2 pb-1"><CardTitle className="text-white text-xs font-medium">🍩 DISTRIBUCIÓN</CardTitle></CardHeader>
-  <CardContent className="p-2">
-    <div className="h-[120px]">
-      <ResponsiveContainer width="100%" height="100%">
-        <PieChart data={estadisticasEstado.filter(e => e.cantidad > 0)}>
-          <Pie 
-            cx="50%" 
-            cy="50%" 
-            innerRadius={25} 
-            outerRadius={45} 
-            paddingAngle={3} 
-            dataKey="cantidad"
-          >
-            {estadisticasEstado.filter(e => e.cantidad > 0).map((entry, index) => (
-              <Cell key={`cell-${index}`} fill={entry.color} />
-            ))}
-          </Pie>
-          <Tooltip content={<CustomTooltip />} />
-          <Legend iconType="circle" iconSize={6} wrapperStyle={{ fontSize: 9 }} />
-        </PieChart>
-      </ResponsiveContainer>
-    </div>
-  </CardContent>
-</Card>
-          <Card className="bg-slate-800/40 border-slate-700/50">
-            <CardHeader className="p-2 pb-1"><CardTitle className="text-white text-xs font-medium">⏱️ RETRASOS</CardTitle></CardHeader>
+
+          <Card className="bg-white border-gray-200 shadow-sm">
+            <CardHeader className="p-2 pb-1"><CardTitle className="text-gray-900 text-xs font-medium">🍩 DISTRIBUCIÓN</CardTitle></CardHeader>
+            <CardContent className="p-2">
+              <div className="h-[120px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart data={estadisticasEstado.filter(e => e.cantidad > 0)}>
+                    <Pie 
+                      cx="50%" 
+                      cy="50%" 
+                      innerRadius={25} 
+                      outerRadius={45} 
+                      paddingAngle={3} 
+                      dataKey="cantidad"
+                    >
+                      {estadisticasEstado.filter(e => e.cantidad > 0).map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip content={<CustomTooltip />} />
+                    <Legend iconType="circle" iconSize={6} wrapperStyle={{ fontSize: 9 }} />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-white border-gray-200 shadow-sm">
+            <CardHeader className="p-2 pb-1"><CardTitle className="text-gray-900 text-xs font-medium">⏱️ RETRASOS</CardTitle></CardHeader>
             <CardContent className="p-2">
               <div className="h-[120px]">
                 {(g?.retrasosPorObra?.length || 0) > 0 ? (
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={g?.retrasosPorObra?.slice(0, 5)} layout="vertical">
-                      <CartesianGrid strokeDasharray="3 3" stroke="#334155" horizontal={false} />
-                      <XAxis type="number" stroke="#64748b" tick={{ fontSize: 9 }} />
-                      <YAxis dataKey="nombre" type="category" stroke="#64748b" tick={{ fontSize: 7 }} width={60} />
+                      <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" horizontal={false} />
+                      <XAxis type="number" stroke="#6b7280" tick={{ fontSize: 9 }} />
+                      <YAxis dataKey="nombre" type="category" stroke="#6b7280" tick={{ fontSize: 7 }} width={60} />
                       <Tooltip content={<CustomTooltip />} />
                       <Bar dataKey="diasRetraso" name="Días" fill="#ef4444" radius={[0, 4, 4, 0]} />
                     </BarChart>
                   </ResponsiveContainer>
-                ) : <div className="h-full flex items-center justify-center"><CheckCircle2 className="h-8 w-8 text-green-500" /><span className="text-xs text-slate-400 ml-2">Sin retrasos</span></div>}
+                ) : <div className="h-full flex items-center justify-center"><CheckCircle2 className="h-8 w-8 text-green-500" /><span className="text-xs text-gray-600 ml-2">Sin retrasos</span></div>}
               </div>
             </CardContent>
           </Card>
@@ -1209,9 +1213,9 @@ export default function AdminDashboardPage() {
 
         {/* Curva S */}
         <div className="grid lg:grid-cols-2 gap-2">
-          <Card className="bg-slate-800/40 border-slate-700/50">
+          <Card className="bg-white border-gray-200 shadow-sm">
             <CardHeader className="p-2 pb-1">
-              <CardTitle className="text-white text-xs font-medium">📈 CURVA S - EJECUTADO VS PROGRAMADO {obraSeleccionadaData && <Badge className="ml-2 bg-emerald-600/20 text-emerald-300 text-[9px]">Obra específica</Badge>}</CardTitle>
+              <CardTitle className="text-gray-900 text-xs font-medium">📈 CURVA S - EJECUTADO VS PROGRAMADO {obraSeleccionadaData && <Badge className="ml-2 bg-emerald-50 text-emerald-700 text-[9px] border border-emerald-200">Obra específica</Badge>}</CardTitle>
             </CardHeader>
             <CardContent className="p-2">
               <div className="h-[280px]">
@@ -1219,9 +1223,18 @@ export default function AdminDashboardPage() {
                   <ResponsiveContainer width="100%" height="100%">
                     <ComposedChart data={curvaData} margin={{ top: 10, right: 10, left: 0, bottom: 10 }}>
                       <defs><linearGradient id="colorEjecutado" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#22c55e" stopOpacity={0.3}/><stop offset="95%" stopColor="#22c55e" stopOpacity={0}/></linearGradient></defs>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-                      <XAxis dataKey="mes" stroke="#64748b" tick={{ fontSize: 9, fill: '#94a3b8' }} />
-                      <YAxis stroke="#64748b" tick={{ fontSize: 9, fill: '#94a3b8' }} tickFormatter={(value: number) => formatCompact(value).replace('S/ ', '')} />
+                      <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                      <XAxis dataKey="dia"stroke="#6b7280" tick={{ fontSize: 9, fill: '#6b7280' }}tickFormatter={(value) => {
+                        // Formatea la fecha para mostrar solo día-mes
+                        try {
+                          const date = new Date(value);
+                          return date.toLocaleDateString('es-PE', { day: '2-digit', month: 'short' });
+                        } catch {
+                          return value;
+                        }
+                        }}
+                        />
+                      <YAxis stroke="#6b7280" tick={{ fontSize: 9, fill: '#6b7280' }} tickFormatter={(value: number) => formatCompact(value).replace('S/ ', '')} />
                       <Tooltip content={<CustomTooltip />} />
                       <Legend iconSize={10} wrapperStyle={{ fontSize: 10, paddingTop: 10 }} />
                       <Area type="monotone" dataKey="acumulado" stroke="transparent" fill="url(#colorEjecutado)" />
@@ -1229,38 +1242,38 @@ export default function AdminDashboardPage() {
                       <Line type="monotone" dataKey="acumulado" name="Ejecutado" stroke="#22c55e" strokeWidth={3} dot={{ fill: '#22c55e', strokeWidth: 2, r: 5, stroke: '#1e293b' }} />
                     </ComposedChart>
                   </ResponsiveContainer>
-                ) : <div className="h-full flex flex-col items-center justify-center text-slate-500"><TrendingUp className="h-12 w-12 mb-3 opacity-30" /><p className="text-sm">No hay datos de ejecución mensual</p></div>}
+                ) : <div className="h-full flex flex-col items-center justify-center text-gray-500"><TrendingUp className="h-12 w-12 mb-3 opacity-30" /><p className="text-sm">No hay datos de ejecución mensual</p></div>}
               </div>
               {interp && (
-                <div className="mt-3 p-3 bg-slate-900/50 rounded-lg border border-slate-700/50">
-                  <p className="text-xs text-slate-400 mb-2 font-medium">Análisis:</p>
-                  <ul className="text-xs text-slate-300 space-y-1.5">
-                    <li>• Ejecutado: <span className="text-emerald-400 font-bold">{formatCurrency(interp.ejecutadoAcum)}</span> ({formatPercent(interp.porcentajeEjec)})</li>
-                    <li>• Programado: <span className="text-amber-400 font-bold">{formatCurrency(interp.programadoAcum)}</span></li>
-                    <li>• Diferencia: <span className={interp.diferencia > 0 ? 'text-red-400' : 'text-emerald-400'}>{formatCurrency(Math.abs(interp.diferencia))}</span> {interp.diferencia > 0 ? 'por debajo' : 'por encima'}</li>
-                    <li>• Estado: <span className={`font-bold ${interp.estado === 'ATRASADA' ? 'text-red-400' : interp.estado === 'ADELANTADA' ? 'text-emerald-400' : 'text-amber-400'}`}>{interp.estado}</span></li>
+                <div className="mt-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                  <p className="text-xs text-gray-600 mb-2 font-medium">Análisis:</p>
+                  <ul className="text-xs text-gray-800 space-y-1.5">
+                    <li>• Ejecutado: <span className="text-emerald-600 font-bold">{formatCurrency(interp.ejecutadoAcum)}</span> ({formatPercent(interp.porcentajeEjec)})</li>
+                    <li>• Programado: <span className="text-amber-600 font-bold">{formatCurrency(interp.programadoAcum)}</span></li>
+                    <li>• Diferencia: <span className={interp.diferencia > 0 ? 'text-red-600' : 'text-emerald-600'}>{formatCurrency(Math.abs(interp.diferencia))}</span> {interp.diferencia > 0 ? 'por debajo' : 'por encima'}</li>
+                    <li>• Estado: <span className={`font-bold ${interp.estado === 'ATRASADA' ? 'text-red-600' : interp.estado === 'ADELANTADA' ? 'text-emerald-600' : 'text-amber-600'}`}>{interp.estado}</span></li>
                   </ul>
                 </div>
               )}
             </CardContent>
           </Card>
 
-          <Card className="bg-slate-800/40 border-slate-700/50">
-            <CardHeader className="p-2 pb-1"><CardTitle className="text-white text-xs font-medium">📊 AVANCE MENSUAL (S/.)</CardTitle></CardHeader>
+          <Card className="bg-white border-gray-200 shadow-sm">
+            <CardHeader className="p-2 pb-1"><CardTitle className="text-gray-900 text-xs font-medium">📊 AVANCE MENSUAL (S/.)</CardTitle></CardHeader>
             <CardContent className="p-2">
               <div className="h-[280px]">
                 {curvaData.length > 0 ? (
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={curvaData}>
                       <defs><linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#8b5cf6" stopOpacity={1}/><stop offset="100%" stopColor="#6366f1" stopOpacity={0.8}/></linearGradient></defs>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-                      <XAxis dataKey="mes" stroke="#64748b" tick={{ fontSize: 9 }} />
-                      <YAxis stroke="#64748b" tick={{ fontSize: 9 }} tickFormatter={(value: number) => formatCompact(value).replace('S/ ', '')} />
+                      <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                      <XAxis dataKey="dia" stroke="#6b7280" tick={{ fontSize: 9 }} />
+                      <YAxis stroke="#6b7280" tick={{ fontSize: 9 }} tickFormatter={(value: number) => formatCompact(value).replace('S/ ', '')} />
                       <Tooltip content={<CustomTooltip />} />
                       <Bar dataKey="parcial" name="Ejecutado Mensual" fill="url(#barGradient)" radius={[6, 6, 0, 0]} />
                     </BarChart>
                   </ResponsiveContainer>
-                ) : <div className="h-full flex items-center justify-center text-slate-500 text-xs">No hay datos</div>}
+                ) : <div className="h-full flex items-center justify-center text-gray-500 text-xs">No hay datos</div>}
               </div>
             </CardContent>
           </Card>
@@ -1268,36 +1281,36 @@ export default function AdminDashboardPage() {
 
         {/* Tabla Partidas */}
         {partidasData.length > 0 && (
-          <Card className="bg-slate-800/40 border-slate-700/50">
+          <Card className="bg-white border-gray-200 shadow-sm">
             <CardHeader className="p-2 pb-1">
               <div className="flex items-center justify-between">
-                <CardTitle className="text-white text-xs font-medium">📦 PARTIDAS PRESUPUESTALES</CardTitle>
-                <Button size="sm" onClick={() => exportToExcel(partidasData as unknown as Record<string, unknown>[], 'partidas', [{ key: 'codigo', label: 'Código' }, { key: 'nombre', label: 'Descripción' }, { key: 'presupuesto', label: 'Presupuesto' }, { key: 'ejecutado', label: 'Ejecutado' }, { key: 'avance', label: '% Avance' }])} className="h-6 text-[10px] bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300"><FileSpreadsheet className="h-3 w-3 mr-1" />Excel</Button>
+                <CardTitle className="text-gray-900 text-xs font-medium">📦 PARTIDAS PRESUPUESTALES</CardTitle>
+                <Button size="sm" onClick={() => exportToExcel(partidasData as unknown as Record<string, unknown>[], 'partidas', [{ key: 'codigo', label: 'Código' }, { key: 'nombre', label: 'Descripción' }, { key: 'presupuesto', label: 'Presupuesto' }, { key: 'ejecutado', label: 'Ejecutado' }, { key: 'avance', label: '% Avance' }])} className="h-6 text-[10px] bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200"><FileSpreadsheet className="h-3 w-3 mr-1" />Excel</Button>
               </div>
             </CardHeader>
             <CardContent className="p-2">
               <div className="overflow-x-auto">
                 <Table>
                   <TableHeader>
-                    <TableRow className="border-slate-700/50">
-                      <TableHead className="text-slate-400 text-[10px] p-1.5">CÓDIGO</TableHead>
-                      <TableHead className="text-slate-400 text-[10px] p-1.5">DESCRIPCIÓN</TableHead>
-                      <TableHead className="text-right text-slate-400 text-[10px] p-1.5">PRESUPUESTO</TableHead>
-                      <TableHead className="text-right text-slate-400 text-[10px] p-1.5">EJECUTADO</TableHead>
-                      <TableHead className="text-slate-400 text-[10px] p-1.5">AVANCE</TableHead>
+                    <TableRow className="border-gray-200">
+                      <TableHead className="text-gray-600 text-[10px] p-1.5">CÓDIGO</TableHead>
+                      <TableHead className="text-gray-600 text-[10px] p-1.5">DESCRIPCIÓN</TableHead>
+                      <TableHead className="text-right text-gray-600 text-[10px] p-1.5">PRESUPUESTO</TableHead>
+                      <TableHead className="text-right text-gray-600 text-[10px] p-1.5">EJECUTADO</TableHead>
+                      <TableHead className="text-gray-600 text-[10px] p-1.5">AVANCE</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {partidasData.map(partida => (
-                      <TableRow key={partida.id} className="border-slate-700/50 hover:bg-slate-700/20">
-                        <TableCell className="font-mono text-slate-400 text-[10px] p-1.5">{partida.codigo}</TableCell>
-                        <TableCell className="text-white text-[10px] p-1.5 max-w-[200px] truncate">{partida.nombre}</TableCell>
-                        <TableCell className="text-right font-mono text-emerald-400 text-[10px] p-1.5">{formatCurrency(partida.presupuesto)}</TableCell>
-                        <TableCell className="text-right font-mono text-cyan-400 text-[10px] p-1.5">{formatCurrency(partida.ejecutado)}</TableCell>
+                      <TableRow key={partida.id} className="border-gray-200 hover:bg-gray-50">
+                        <TableCell className="font-mono text-gray-600 text-[10px] p-1.5">{partida.codigo}</TableCell>
+                        <TableCell className="text-gray-800 text-[10px] p-1.5 max-w-[200px] truncate">{partida.nombre}</TableCell>
+                        <TableCell className="text-right font-mono text-emerald-600 text-[10px] p-1.5">{formatCurrency(partida.presupuesto)}</TableCell>
+                        <TableCell className="text-right font-mono text-cyan-600 text-[10px] p-1.5">{formatCurrency(partida.ejecutado)}</TableCell>
                         <TableCell className="p-1.5">
                           <div className="flex items-center gap-1">
-                            <div className="w-16 h-1.5 bg-slate-700 rounded-full overflow-hidden"><div className="h-full bg-gradient-to-r from-emerald-500 to-cyan-500" style={{ width: `${Math.min(partida.avance, 100)}%` }} /></div>
-                            <span className="text-[9px] text-slate-400">{partida.avance.toFixed(1)}%</span>
+                            <div className="w-16 h-1.5 bg-gray-200 rounded-full overflow-hidden"><div className="h-full bg-gradient-to-r from-emerald-500 to-cyan-500" style={{ width: `${Math.min(partida.avance, 100)}%` }} /></div>
+                            <span className="text-[9px] text-gray-600">{partida.avance.toFixed(1)}%</span>
                           </div>
                         </TableCell>
                       </TableRow>
@@ -1310,48 +1323,48 @@ export default function AdminDashboardPage() {
         )}
 
         {/* Tabla Obras */}
-        <Card className="bg-slate-800/40 border-slate-700/50">
+        <Card className="bg-white border-gray-200 shadow-sm">
           <CardHeader className="p-2 pb-1">
             <div className="flex items-center justify-between gap-2">
-              <CardTitle className="text-white text-xs font-medium">🏗️ LISTADO DE OBRAS</CardTitle>
+              <CardTitle className="text-gray-900 text-xs font-medium">🏗️ LISTADO DE OBRAS</CardTitle>
               <div className="flex items-center gap-1.5">
                 <div className="relative">
-                  <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 text-slate-500" />
-                  <Input placeholder="Buscar obra..." value={busquedaObra} onChange={(e) => setBusquedaObra(e.target.value)} className="h-7 text-xs pl-7 bg-slate-900/50 border-slate-600 text-white w-48" />
+                  <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 text-gray-500" />
+                  <Input placeholder="Buscar obra..." value={busquedaObra} onChange={(e) => setBusquedaObra(e.target.value)} className="h-7 text-xs pl-7 bg-gray-50 border-gray-300 text-gray-800 w-48" />
                 </div>
-                <Button size="sm" onClick={exportarObras} className="h-7 text-[10px] bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300"><FileSpreadsheet className="h-3 w-3 mr-1" />Excel</Button>
+                <Button size="sm" onClick={exportarObras} className="h-7 text-[10px] bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200"><FileSpreadsheet className="h-3 w-3 mr-1" />Excel</Button>
               </div>
             </div>
           </CardHeader>
           <CardContent className="p-2">
-            <div className="text-xs text-slate-400 mb-2">Mostrando {obrasFiltradas.length} de {stats?.obras.length || 0} obras</div>
+            <div className="text-xs text-gray-600 mb-2">Mostrando {obrasFiltradas.length} de {stats?.obras.length || 0} obras</div>
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
-                  <TableRow className="border-slate-700/50">
-                    <TableHead className="text-slate-400 text-[10px] p-1.5 cursor-pointer hover:text-white" onClick={() => handleSort('id_obra')}><div className="flex items-center gap-1">CÓD <ArrowUpDown className="h-3 w-3" /></div></TableHead>
-                    <TableHead className="text-slate-400 text-[10px] p-1.5 cursor-pointer hover:text-white" onClick={() => handleSort('nombre_obra')}><div className="flex items-center gap-1">OBRA <ArrowUpDown className="h-3 w-3" /></div></TableHead>
-                    <TableHead className="text-slate-400 text-[10px] p-1.5">UBICACIÓN</TableHead>
-                    <TableHead className="text-right text-slate-400 text-[10px] p-1.5 cursor-pointer hover:text-white" onClick={() => handleSort('presupuesto_inicial')}><div className="flex items-center justify-end gap-1">PRESUPUESTO <ArrowUpDown className="h-3 w-3" /></div></TableHead>
-                    <TableHead className="text-right text-slate-400 text-[10px] p-1.5">EJECUTADO</TableHead>
-                    <TableHead className="text-slate-400 text-[10px] p-1.5">ESTADO</TableHead>
-                    <TableHead className="text-slate-400 text-[10px] p-1.5 cursor-pointer hover:text-white" onClick={() => handleSort('avanceFisico')}><div className="flex items-center gap-1">% FÍSICO <ArrowUpDown className="h-3 w-3" /></div></TableHead>
-                    <TableHead className="text-slate-400 text-[10px] p-1.5">SEM.</TableHead>
+                  <TableRow className="border-gray-200">
+                    <TableHead className="text-gray-600 text-[10px] p-1.5 cursor-pointer hover:text-gray-900" onClick={() => handleSort('id_obra')}><div className="flex items-center gap-1">CÓD <ArrowUpDown className="h-3 w-3" /></div></TableHead>
+                    <TableHead className="text-gray-600 text-[10px] p-1.5 cursor-pointer hover:text-gray-900" onClick={() => handleSort('nombre_obra')}><div className="flex items-center gap-1">OBRA <ArrowUpDown className="h-3 w-3" /></div></TableHead>
+                    <TableHead className="text-gray-600 text-[10px] p-1.5">UBICACIÓN</TableHead>
+                    <TableHead className="text-right text-gray-600 text-[10px] p-1.5 cursor-pointer hover:text-gray-900" onClick={() => handleSort('presupuesto_inicial')}><div className="flex items-center justify-end gap-1">PRESUPUESTO <ArrowUpDown className="h-3 w-3" /></div></TableHead>
+                    <TableHead className="text-right text-gray-600 text-[10px] p-1.5">EJECUTADO</TableHead>
+                    <TableHead className="text-gray-600 text-[10px] p-1.5">ESTADO</TableHead>
+                    <TableHead className="text-gray-600 text-[10px] p-1.5 cursor-pointer hover:text-gray-900" onClick={() => handleSort('avanceFisico')}><div className="flex items-center gap-1">% FÍSICO <ArrowUpDown className="h-3 w-3" /></div></TableHead>
+                    <TableHead className="text-gray-600 text-[10px] p-1.5">SEM.</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {obrasFiltradas.map(obra => (
-                    <TableRow key={obra.id_obra} className={`border-slate-700/50 hover:bg-slate-700/30 cursor-pointer transition-colors ${obraActiva === obra.id_obra.toString() ? 'bg-emerald-900/20' : ''}`} onClick={() => setObraActiva(obra.id_obra.toString())}>
-                      <TableCell className="font-mono text-slate-400 text-[10px] p-1.5">{obra.id_obra.toString().padStart(3, '0')}</TableCell>
-                      <TableCell className="text-white text-[10px] p-1.5 max-w-[150px] truncate">{obra.nombre_obra}</TableCell>
-                      <TableCell className="text-slate-400 text-[10px] p-1.5 max-w-[100px] truncate">{obra.ubicacion}</TableCell>
-                      <TableCell className="text-right font-mono text-emerald-400 text-[10px] p-1.5">{formatCurrency(obra.presupuesto_inicial)}</TableCell>
-                      <TableCell className="text-right font-mono text-cyan-400 text-[10px] p-1.5">{formatCurrency(obra.ejecutado)}</TableCell>
+                    <TableRow key={obra.id_obra} className={`border-gray-200 hover:bg-gray-50 cursor-pointer transition-colors ${obraActiva === obra.id_obra.toString() ? 'bg-emerald-50' : ''}`} onClick={() => setObraActiva(obra.id_obra.toString())}>
+                      <TableCell className="font-mono text-gray-600 text-[10px] p-1.5">{obra.id_obra.toString().padStart(3, '0')}</TableCell>
+                      <TableCell className="text-gray-800 text-[10px] p-1.5 max-w-[150px] truncate">{obra.nombre_obra}</TableCell>
+                      <TableCell className="text-gray-600 text-[10px] p-1.5 max-w-[100px] truncate">{obra.ubicacion}</TableCell>
+                      <TableCell className="text-right font-mono text-emerald-600 text-[10px] p-1.5">{formatCurrency(obra.presupuesto_inicial)}</TableCell>
+                      <TableCell className="text-right font-mono text-cyan-600 text-[10px] p-1.5">{formatCurrency(obra.ejecutado)}</TableCell>
                       <TableCell className="p-1.5"><Badge className="text-white text-[8px] px-1" style={{ backgroundColor: COLORS_ESTADO[obra.estado] }}>{ESTADO_LABELS[obra.estado]}</Badge></TableCell>
                       <TableCell className="p-1.5">
                         <div className="flex items-center gap-1">
-                          <div className="w-12 h-1.5 bg-slate-700 rounded-full overflow-hidden"><div className="h-full bg-gradient-to-r from-emerald-500 to-cyan-500" style={{ width: `${Math.min(obra.avanceFisico, 100)}%` }} /></div>
-                          <span className="text-[9px] text-slate-400">{obra.avanceFisico.toFixed(1)}%</span>
+                          <div className="w-12 h-1.5 bg-gray-200 rounded-full overflow-hidden"><div className="h-full bg-gradient-to-r from-emerald-500 to-cyan-500" style={{ width: `${Math.min(obra.avanceFisico, 100)}%` }} /></div>
+                          <span className="text-[9px] text-gray-600">{obra.avanceFisico.toFixed(1)}%</span>
                         </div>
                       </TableCell>
                       <TableCell className="p-1.5"><div className={`w-3 h-3 rounded-full ${obra.estadoSemaforo === 'VERDE' ? 'bg-green-500' : obra.estadoSemaforo === 'AMARILLO' ? 'bg-yellow-500' : 'bg-red-500'}`} /></TableCell>
@@ -1366,48 +1379,48 @@ export default function AdminDashboardPage() {
 
       {/* Modal PDF */}
       <Dialog open={showPreviewModal} onOpenChange={setShowPreviewModal}>
-        <DialogContent className="max-w-5xl max-h-[90vh] bg-slate-800 border-slate-700 p-0 overflow-hidden">
-          <div className="p-3 border-b border-slate-700">
-            <DialogTitle className="text-white text-sm">Generar Reporte PDF</DialogTitle>
-            <DialogDescription className="text-slate-400 text-xs">Seleccione las secciones a incluir</DialogDescription>
+        <DialogContent className="max-w-5xl max-h-[90vh] bg-white border-gray-200 p-0 overflow-hidden shadow-xl">
+          <div className="p-3 border-b border-gray-200">
+            <DialogTitle className="text-gray-900 text-sm">Generar Reporte PDF</DialogTitle>
+            <DialogDescription className="text-gray-600 text-xs">Seleccione las secciones a incluir</DialogDescription>
           </div>
           <div className="flex h-[70vh]">
-            <div className="w-1/3 border-r border-slate-700 p-3 overflow-auto">
-              <div className="text-xs text-slate-400 mb-2 font-medium">Secciones:</div>
+            <div className="w-1/3 border-r border-gray-200 p-3 overflow-auto">
+              <div className="text-xs text-gray-600 mb-2 font-medium">Secciones:</div>
               {['resumen', 'graficos', 'tablas'].map(cat => (
                 <div key={cat} className="mb-3">
-                  <div className="text-[10px] text-slate-500 uppercase font-medium mb-1">{cat === 'resumen' && '📊'}{cat === 'graficos' && '📈'}{cat === 'tablas' && '📋'} {cat}</div>
+                  <div className="text-[10px] text-gray-500 uppercase font-medium mb-1">{cat === 'resumen' && '📊'}{cat === 'graficos' && '📈'}{cat === 'tablas' && '📋'} {cat}</div>
                   {SECCIONES_PDF.filter(s => s.cat === cat).map(sec => (
-                    <div key={sec.id} className={`flex items-center gap-2 p-1.5 rounded cursor-pointer mb-1 border transition-colors ${seccionesSeleccionadas.includes(sec.id) ? 'bg-emerald-600/20 border-emerald-600/50' : 'bg-slate-700/30 border-slate-700 hover:border-slate-600'}`} onClick={() => toggleSeccion(sec.id)}>
-                      <div className={`w-4 h-4 rounded border flex items-center justify-center ${seccionesSeleccionadas.includes(sec.id) ? 'bg-emerald-500 border-emerald-500' : 'border-slate-500'}`}>{seccionesSeleccionadas.includes(sec.id) && <Check className="h-2.5 w-2.5 text-white" />}</div>
-                      <span className="text-[10px] text-slate-200">{sec.nombre}</span>
+                    <div key={sec.id} className={`flex items-center gap-2 p-1.5 rounded cursor-pointer mb-1 border transition-colors ${seccionesSeleccionadas.includes(sec.id) ? 'bg-emerald-50 border-emerald-200' : 'bg-gray-50 border-gray-200 hover:border-gray-300'}`} onClick={() => toggleSeccion(sec.id)}>
+                      <div className={`w-4 h-4 rounded border flex items-center justify-center ${seccionesSeleccionadas.includes(sec.id) ? 'bg-emerald-500 border-emerald-500' : 'border-gray-300'}`}>{seccionesSeleccionadas.includes(sec.id) && <Check className="h-2.5 w-2.5 text-white" />}</div>
+                      <span className="text-[10px] text-gray-800">{sec.nombre}</span>
                     </div>
                   ))}
                 </div>
               ))}
-              <div className="flex gap-1 mt-3 pt-2 border-t border-slate-700">
-                <Button size="sm" variant="outline" onClick={() => { setSeccionesSeleccionadas(SECCIONES_PDF.map(s => s.id)); setPdfPreviewUrl(null) }} className="h-6 text-[10px] border-slate-600 flex-1">Todas</Button>
-                <Button size="sm" variant="outline" onClick={() => { setSeccionesSeleccionadas([]); setPdfPreviewUrl(null) }} className="h-6 text-[10px] border-slate-600 flex-1">Ninguna</Button>
+              <div className="flex gap-1 mt-3 pt-2 border-t border-gray-200">
+                <Button size="sm" variant="outline" onClick={() => { setSeccionesSeleccionadas(SECCIONES_PDF.map(s => s.id)); setPdfPreviewUrl(null) }} className="h-6 text-[10px] border-gray-300 flex-1">Todas</Button>
+                <Button size="sm" variant="outline" onClick={() => { setSeccionesSeleccionadas([]); setPdfPreviewUrl(null) }} className="h-6 text-[10px] border-gray-300 flex-1">Ninguna</Button>
               </div>
             </div>
             <div className="flex-1 flex flex-col">
-              <div className="p-2 border-b border-slate-700 flex items-center justify-between">
-                <span className="text-xs text-slate-400">Vista Previa</span>
-                <Button size="sm" onClick={() => generatePdf(true)} disabled={generatingPreview || seccionesSeleccionadas.length === 0} className="h-7 text-xs bg-slate-700 hover:bg-slate-600">
+              <div className="p-2 border-b border-gray-200 flex items-center justify-between">
+                <span className="text-xs text-gray-600">Vista Previa</span>
+                <Button size="sm" onClick={() => generatePdf(true)} disabled={generatingPreview || seccionesSeleccionadas.length === 0} className="h-7 text-xs bg-gray-100 hover:bg-gray-200 text-gray-800">
                   {generatingPreview ? <><Loader2 className="h-3 w-3 mr-1 animate-spin" />Generando...</> : <><Eye className="h-3 w-3 mr-1" />Ver Preview</>}
                 </Button>
               </div>
-              <div className="flex-1 bg-slate-950 overflow-auto">
-                {pdfPreviewUrl ? <iframe src={pdfPreviewUrl} className="w-full h-full" title="Vista Previa" /> : <div className="h-full flex items-center justify-center text-slate-500"><div className="text-center"><Eye className="h-12 w-12 mx-auto mb-3 opacity-30" /><p className="text-sm">Presione Ver Preview</p></div></div>}
+              <div className="flex-1 bg-gray-50 overflow-auto">
+                {pdfPreviewUrl ? <iframe src={pdfPreviewUrl} className="w-full h-full" title="Vista Previa" /> : <div className="h-full flex items-center justify-center text-gray-500"><div className="text-center"><Eye className="h-12 w-12 mx-auto mb-3 opacity-30" /><p className="text-sm">Presione Ver Preview</p></div></div>}
               </div>
             </div>
           </div>
-          <div className="p-3 border-t border-slate-700 flex justify-between items-center">
-            <div className="text-[10px] text-slate-500">{obraSeleccionadaData ? `Reporte: ${obraSeleccionadaData.nombre_obra.substring(0, 30)}...` : 'Reporte General'}</div>
+          <div className="p-3 border-t border-gray-200 flex justify-between items-center">
+            <div className="text-[10px] text-gray-500">{obraSeleccionadaData ? `Reporte: ${obraSeleccionadaData.nombre_obra.substring(0, 30)}...` : 'Reporte General'}</div>
             <div className="flex gap-2">
-              <Button size="sm" variant="outline" onClick={() => setShowPreviewModal(false)} className="h-8 text-xs border-slate-600">Cancelar</Button>
-              <Button size="sm" onClick={() => generatePdf(false, false)} disabled={generatingPdf || seccionesSeleccionadas.length === 0} className="h-8 text-xs bg-slate-700 hover:bg-slate-600">{generatingPdf ? <Loader2 className="h-3 w-3 mr-1 animate-spin" /> : <Download className="h-3 w-3 mr-1" />}Descargar</Button>
-              <Button size="sm" onClick={() => generatePdf(false, true)} disabled={generatingPdf || seccionesSeleccionadas.length === 0} className="h-8 text-xs bg-gradient-to-r from-emerald-600 to-teal-600">{generatingPdf ? <Loader2 className="h-3 w-3 mr-1 animate-spin" /> : <FileText className="h-3 w-3 mr-1" />}Guardar</Button>
+              <Button size="sm" variant="outline" onClick={() => setShowPreviewModal(false)} className="h-8 text-xs border-gray-300">Cancelar</Button>
+              <Button size="sm" onClick={() => generatePdf(false, false)} disabled={generatingPdf || seccionesSeleccionadas.length === 0} className="h-8 text-xs bg-gray-100 hover:bg-gray-200 text-gray-800">{generatingPdf ? <Loader2 className="h-3 w-3 mr-1 animate-spin" /> : <Download className="h-3 w-3 mr-1" />}Descargar</Button>
+              <Button size="sm" onClick={() => generatePdf(false, true)} disabled={generatingPdf || seccionesSeleccionadas.length === 0} className="h-8 text-xs bg-gradient-to-r from-emerald-600 to-teal-600 text-white">{generatingPdf ? <Loader2 className="h-3 w-3 mr-1 animate-spin" /> : <FileText className="h-3 w-3 mr-1" />}Guardar</Button>
             </div>
           </div>
         </DialogContent>
@@ -1415,21 +1428,21 @@ export default function AdminDashboardPage() {
 
       {/* Modal Reportes */}
       <Dialog open={showReportesModal} onOpenChange={setShowReportesModal}>
-        <DialogContent className="sm:max-w-2xl bg-slate-800 border-slate-700">
-          <DialogHeader><DialogTitle className="text-white">Reportes Guardados</DialogTitle></DialogHeader>
+        <DialogContent className="sm:max-w-2xl bg-white border-gray-200">
+          <DialogHeader><DialogTitle className="text-gray-900">Reportes Guardados</DialogTitle></DialogHeader>
           <ScrollArea className="max-h-[400px]">
-            {reportes.length === 0 ? <div className="text-center py-8 text-slate-500"><FileText className="h-10 w-10 mx-auto mb-2 opacity-50" /><p className="text-xs">No hay reportes</p></div> : (
+            {reportes.length === 0 ? <div className="text-center py-8 text-gray-500"><FileText className="h-10 w-10 mx-auto mb-2 opacity-50" /><p className="text-xs">No hay reportes</p></div> : (
               <Table>
-                <TableHeader><TableRow className="border-slate-700"><TableHead className="text-slate-400 text-xs">Archivo</TableHead><TableHead className="text-slate-400 text-xs">Fecha</TableHead><TableHead className="text-right text-slate-400 text-xs">Acciones</TableHead></TableRow></TableHeader>
+                <TableHeader><TableRow className="border-gray-200"><TableHead className="text-gray-600 text-xs">Archivo</TableHead><TableHead className="text-gray-600 text-xs">Fecha</TableHead><TableHead className="text-right text-gray-600 text-xs">Acciones</TableHead></TableRow></TableHeader>
                 <TableBody>
                   {reportes.map(rep => (
-                    <TableRow key={rep.id_documento} className="border-slate-700/50">
-                      <TableCell className="text-white text-xs"><FileText className="h-3.5 w-3.5 text-red-400 inline mr-2" />{rep.nombre_archivo}</TableCell>
-                      <TableCell className="text-slate-400 text-xs">{formatDate(rep.fecha_carga)}</TableCell>
+                    <TableRow key={rep.id_documento} className="border-gray-200">
+                      <TableCell className="text-gray-800 text-xs"><FileText className="h-3.5 w-3.5 text-red-500 inline mr-2" />{rep.nombre_archivo}</TableCell>
+                      <TableCell className="text-gray-600 text-xs">{formatDate(rep.fecha_carga)}</TableCell>
                       <TableCell className="text-right">
-                        <Button size="sm" variant="ghost" onClick={() => { setPdfViewerUrl(rep.ruta_archivo); setShowPdfViewerModal(true) }} className="h-6 w-6 p-0 text-slate-400 hover:text-white"><Eye className="h-3.5 w-3.5" /></Button>
-                        <Button size="sm" variant="ghost" onClick={() => window.open(rep.ruta_archivo, '_blank')} className="h-6 w-6 p-0 text-slate-400 hover:text-white"><Download className="h-3.5 w-3.5" /></Button>
-                        <Button size="sm" variant="ghost" onClick={() => handleDeleteReporte(rep.id_documento)} className="h-6 w-6 p-0 text-slate-400 hover:text-red-400"><Trash2 className="h-3.5 w-3.5" /></Button>
+                        <Button size="sm" variant="ghost" onClick={() => { setPdfViewerUrl(rep.ruta_archivo); setShowPdfViewerModal(true) }} className="h-6 w-6 p-0 text-gray-600 hover:text-gray-900"><Eye className="h-3.5 w-3.5" /></Button>
+                        <Button size="sm" variant="ghost" onClick={() => window.open(rep.ruta_archivo, '_blank')} className="h-6 w-6 p-0 text-gray-600 hover:text-gray-900"><Download className="h-3.5 w-3.5" /></Button>
+                        <Button size="sm" variant="ghost" onClick={() => handleDeleteReporte(rep.id_documento)} className="h-6 w-6 p-0 text-gray-600 hover:text-red-600"><Trash2 className="h-3.5 w-3.5" /></Button>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -1442,11 +1455,65 @@ export default function AdminDashboardPage() {
 
       {/* Modal Visor PDF */}
       <Dialog open={showPdfViewerModal} onOpenChange={setShowPdfViewerModal}>
-        <DialogContent className="sm:max-w-4xl h-[85vh] bg-slate-800 border-slate-700 p-0">
-          <div className="p-3 border-b border-slate-700"><DialogTitle className="text-white text-sm">Visor de Reporte</DialogTitle></div>
+        <DialogContent className="sm:max-w-4xl h-[85vh] bg-white border-gray-200 p-0">
+          <div className="p-3 border-b border-gray-200"><DialogTitle className="text-gray-900 text-sm">Visor de Reporte</DialogTitle></div>
           <iframe src={pdfViewerUrl} className="w-full flex-1" style={{ height: 'calc(85vh - 50px)' }} title="PDF Viewer" />
         </DialogContent>
       </Dialog>
     </div>
   )
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// Función para generar datos de prueba diarios
+const generateDailyTestData = (): CurvaSData[] => {
+  const startDate = new Date('2024-01-01');
+  const days = 30;
+  const testData: CurvaSData[] = [];
+  
+  let ejecutadoAcumulado = 0;
+  let programadoAcumulado = 0;
+  const presupuestoTotal = 500000;
+  
+  for (let i = 1; i <= days; i++) {
+    const currentDate = new Date(startDate);
+    currentDate.setDate(startDate.getDate() + i);
+    
+    // Formato YYYY-MM-DD
+    const dia = currentDate.toISOString().split('T')[0];
+    
+    // Valores aleatorios para simular
+    const parcial = Math.floor(Math.random() * 5000) + 1000;
+    ejecutadoAcumulado += parcial;
+    
+    // Programado lineal
+    programadoAcumulado = (presupuestoTotal / days) * i;
+    
+    testData.push({
+      dia,
+      parcial,
+      acumulado: ejecutadoAcumulado,
+      parcialPorcentaje: (parcial / presupuestoTotal) * 100,
+      acumuladoPorcentaje: (ejecutadoAcumulado / presupuestoTotal) * 100,
+      programadoAcumulado: programadoAcumulado,
+      programadoPorcentaje: (programadoAcumulado / presupuestoTotal) * 100,
+    });
+  }
+  
+  return testData;
+};
